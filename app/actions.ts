@@ -1,12 +1,13 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import { requireProfile, requireUser, getProfile } from "@/lib/app-data";
-import { getTodayISO } from "@/lib/dates";
+import { getAuthUser } from "@/lib/auth-users";
+import { FALLBACK_TIME_ZONE, getTodayISO } from "@/lib/dates";
 
 export type ActionState = {
   message?: string;
@@ -17,33 +18,40 @@ function readText(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
-export async function signInWithEmail(_: ActionState, formData: FormData): Promise<ActionState> {
+export async function signInWithPassword(_: ActionState, formData: FormData): Promise<ActionState> {
   const { isConfigured } = getSupabaseConfig();
-  const email = readText(formData, "email");
+  const username = readText(formData, "username").toLowerCase();
+  const password = readText(formData, "password");
+  const authUser = getAuthUser(username);
 
   if (!isConfigured) {
     return { error: "Supabase ist noch nicht konfiguriert. Bitte Env-Variablen setzen." };
   }
 
-  if (!email) {
-    return { error: "Bitte gib deine E-Mail-Adresse ein." };
+  if (!authUser || !password) {
+    return { error: "Bitte gib Benutzername und Passwort ein." };
   }
 
-  const headerStore = await headers();
-  const origin = headerStore.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-    },
+  const { error } = await supabase.auth.signInWithPassword({
+    email: authUser.email,
+    password,
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: "Benutzername oder Passwort ist falsch." };
   }
 
-  return { message: "Login-Link versendet. Öffne ihn auf diesem Gerät." };
+  const { error: setupError } = await supabase.rpc("ensure_gredaful_profile", {
+    profile_name: authUser.displayName,
+  });
+
+  if (setupError) {
+    return { error: setupError.message };
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/today");
 }
 
 export async function setupCouple(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -88,7 +96,9 @@ export async function saveDailyEntry(formData: FormData) {
   const supabase = await createClient();
   const highlight = readText(formData, "highlight");
   const blessing = readText(formData, "blessing");
-  const entryDate = readText(formData, "entryDate") || getTodayISO();
+  const cookieStore = await cookies();
+  const timeZone = readText(formData, "timeZone") || cookieStore.get("gredaful-time-zone")?.value || FALLBACK_TIME_ZONE;
+  const entryDate = readText(formData, "entryDate") || getTodayISO(timeZone);
 
   if (!highlight || !blessing) {
     redirect("/today?error=missing-entry");

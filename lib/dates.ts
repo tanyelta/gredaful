@@ -1,8 +1,8 @@
-const APP_TIME_ZONE = process.env.APP_TIME_ZONE ?? "Europe/Istanbul";
+export const FALLBACK_TIME_ZONE = "Europe/Istanbul";
 
-export function getTodayISO() {
+export function getTodayISO(timeZone = FALLBACK_TIME_ZONE) {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: APP_TIME_ZONE,
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

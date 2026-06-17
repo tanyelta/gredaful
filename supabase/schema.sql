@@ -190,3 +190,42 @@ $$;
 grant execute on function public.create_couple_for_current_user(text, text, text) to authenticated;
 grant execute on function public.join_couple_by_code(text, text) to authenticated;
 grant execute on function public.is_couple_member(uuid) to authenticated;
+
+create or replace function public.ensure_gredaful_profile(profile_name text)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_user_id uuid := auth.uid();
+  target_couple_id uuid;
+begin
+  if current_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  select id into target_couple_id
+  from public.couples
+  where invite_code = 'gredaful-private'
+  limit 1;
+
+  if target_couple_id is null then
+    insert into public.couples (name, invite_code)
+    values ('GREDAFUL', 'gredaful-private')
+    on conflict (invite_code) do update
+      set name = excluded.name
+    returning id into target_couple_id;
+  end if;
+
+  insert into public.profiles (id, couple_id, display_name)
+  values (current_user_id, target_couple_id, profile_name)
+  on conflict (id) do update
+    set couple_id = excluded.couple_id,
+        display_name = excluded.display_name;
+
+  return target_couple_id;
+end;
+$$;
+
+grant execute on function public.ensure_gredaful_profile(text) to authenticated;

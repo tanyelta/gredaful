@@ -1,6 +1,13 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { getTodayISO } from "@/lib/dates";
+import { isAllowedAuthEmail } from "@/lib/auth-users";
+import { FALLBACK_TIME_ZONE, getTodayISO } from "@/lib/dates";
+
+export async function getUserTimeZone() {
+  const cookieStore = await cookies();
+  return cookieStore.get("gredaful-time-zone")?.value ?? FALLBACK_TIME_ZONE;
+}
 
 export async function getCurrentUser() {
   const supabase = await createClient();
@@ -15,6 +22,10 @@ export async function requireUser() {
   const user = await getCurrentUser();
 
   if (!user) {
+    redirect("/login");
+  }
+
+  if (!isAllowedAuthEmail(user.email)) {
     redirect("/login");
   }
 
@@ -46,7 +57,7 @@ export async function requireProfile() {
 export async function getTodayRitual() {
   const { profile } = await requireProfile();
   const supabase = await createClient();
-  const today = getTodayISO();
+  const today = getTodayISO(await getUserTimeZone());
 
   const { data: todayEntries } = await supabase
     .from("daily_entries")
@@ -88,7 +99,7 @@ export async function getHistoryEntries() {
   const { profile } = await requireProfile();
   const supabase = await createClient();
 
-  const today = getTodayISO();
+  const today = getTodayISO(await getUserTimeZone());
   const { data: latestPreviousEntry } = await supabase
     .from("daily_entries")
     .select("entry_date")

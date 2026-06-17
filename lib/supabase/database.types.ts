@@ -125,6 +125,12 @@ export type Database = {
         };
         Returns: string;
       };
+      ensure_gredaful_profile: {
+        Args: {
+          profile_name: string;
+        };
+        Returns: string;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

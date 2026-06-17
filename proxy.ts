@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { isAllowedAuthEmail } from "@/lib/auth-users";
 import type { Database } from "@/lib/supabase/database.types";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 
@@ -31,7 +32,7 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isProtected = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
-  if (isProtected && !user) {
+  if (isProtected && (!user || !isAllowedAuthEmail(user.email))) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);

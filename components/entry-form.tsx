@@ -1,5 +1,6 @@
 import { saveDailyEntry } from "@/app/actions";
 import { SubmitButton } from "@/components/submit-button";
+import { TimeZoneInput } from "@/components/time-zone-input";
 
 type EntryFormProps = {
   entryDate: string;
@@ -11,6 +12,7 @@ export function EntryForm({ entryDate, highlight = "", blessing = "" }: EntryFor
   return (
     <form action={saveDailyEntry} className="flex flex-col gap-4">
       <input type="hidden" name="entryDate" value={entryDate} />
+      <TimeZoneInput />
       <label className="flex flex-col gap-2 text-sm font-semibold text-stone-800">
         Mein Highlight
         <textarea
