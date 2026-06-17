@@ -1,0 +1,17 @@
+{
+  "name": "GREDAFUL",
+  "short_name": "GREDAFUL",
+  "description": "Euer privates Abendritual für Highlights und Blessings.",
+  "start_url": "/today",
+  "display": "standalone",
+  "background_color": "#fffdf7",
+  "theme_color": "#fff8df",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

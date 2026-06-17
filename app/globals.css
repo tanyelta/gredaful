@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fffdf7;
+  --foreground: #211a10;
+  --gold: #d7a83f;
+  --gold-soft: #f9df8a;
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-strong: rgba(255, 255, 255, 0.78);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(249, 223, 138, 0.48), transparent 28rem),
+    radial-gradient(circle at 85% 18%, rgba(215, 168, 63, 0.28), transparent 24rem),
+    linear-gradient(180deg, #fffefb 0%, #fff7dc 52%, #ffffff 100%);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(215, 168, 63, 0.28);
+}
+
+.glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.42));
+  box-shadow: 0 24px 80px rgba(101, 72, 18, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+}
+
+.gold-text {
+  background: linear-gradient(135deg, #8f6517, #d7a83f 48%, #f3cb62);
+  background-clip: text;
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
