@@ -129,6 +129,20 @@ export async function toggleFavorite(formData: FormData) {
   revalidatePath("/memories");
 }
 
+export async function deleteEntry(formData: FormData) {
+  const { user } = await requireProfile();
+  const supabase = await createClient();
+  const entryId = readText(formData, "entryId");
+
+  if (entryId) {
+    await supabase.from("daily_entries").delete().eq("id", entryId).eq("user_id", user.id);
+  }
+
+  revalidatePath("/today");
+  revalidatePath("/history");
+  revalidatePath("/memories");
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();

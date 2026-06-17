@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { DeleteEntryButton } from "@/components/delete-entry-button";
 import { FavoriteButton } from "@/components/favorite-button";
 import { GlassCard } from "@/components/glass-card";
 import { formatDateLabel } from "@/lib/dates";
@@ -30,7 +31,10 @@ export default async function HistoryPage() {
                     {entry.profiles?.display_name ?? "Ein Herz"}
                   </p>
                   {entry.user_id === profile.id ? (
-                    <FavoriteButton entryId={entry.id} isFavorite={entry.is_favorite} />
+                    <div className="flex items-center gap-2">
+                      <FavoriteButton entryId={entry.id} isFavorite={entry.is_favorite} />
+                      <DeleteEntryButton entryId={entry.id} />
+                    </div>
                   ) : null}
                 </div>
                 <div className="space-y-3 text-sm leading-6 text-stone-700">

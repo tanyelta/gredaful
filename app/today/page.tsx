@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock3 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { DeleteEntryButton } from "@/components/delete-entry-button";
 import { EntryForm } from "@/components/entry-form";
 import { FavoriteButton } from "@/components/favorite-button";
 import { GlassCard } from "@/components/glass-card";
@@ -15,8 +16,7 @@ type TodayPageProps = {
 
 export default async function TodayPage({ searchParams }: TodayPageProps) {
   const params = await searchParams;
-  const { today, profile, entries, ownEntry } = await getTodayRitual();
-  const partnerEntry = entries.find((entry) => entry.user_id !== profile.id);
+  const { today, profile, lastEveningDate, lastEveningEntries, ownEntry } = await getTodayRitual();
 
   return (
     <AppShell title="Heute" subtitle={formatDateLabel(today)}>
@@ -48,9 +48,12 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-800/50">Gemeinsam</p>
           <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-stone-950">Euer Abendblick</h2>
+          {lastEveningDate ? (
+            <p className="mt-1 text-sm text-stone-600">{formatDateLabel(lastEveningDate)}</p>
+          ) : null}
         </div>
         <div className="grid gap-3">
-          {entries.map((entry) => {
+          {lastEveningEntries.map((entry) => {
             const canFavorite = entry.user_id === profile.id;
 
             return (
@@ -59,7 +62,12 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
                   <p className="text-sm font-semibold text-stone-950">
                     {entry.profiles?.display_name ?? "Ein Herz"}
                   </p>
-                  {canFavorite ? <FavoriteButton entryId={entry.id} isFavorite={entry.is_favorite} /> : null}
+                  {canFavorite ? (
+                    <div className="flex items-center gap-2">
+                      <FavoriteButton entryId={entry.id} isFavorite={entry.is_favorite} />
+                      <DeleteEntryButton entryId={entry.id} />
+                    </div>
+                  ) : null}
                 </div>
                 <div className="space-y-3 text-sm leading-6 text-stone-700">
                   <p>
@@ -72,9 +80,9 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
               </article>
             );
           })}
-          {!partnerEntry ? (
+          {lastEveningEntries.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-amber-200/80 bg-white/35 p-4 text-sm leading-6 text-stone-600">
-              Sobald die zweite Person ihren Eintrag speichert, erscheint er hier neben deinem.
+              Sobald ein vorheriger Abend gespeichert ist, erscheint er hier als gemeinsamer Abendblick.
             </div>
           ) : null}
         </div>

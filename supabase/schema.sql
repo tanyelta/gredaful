@@ -114,6 +114,12 @@ to authenticated
 using (user_id = auth.uid())
 with check (user_id = auth.uid());
 
+drop policy if exists "Users can delete own entries" on public.daily_entries;
+create policy "Users can delete own entries"
+on public.daily_entries for delete
+to authenticated
+using (user_id = auth.uid());
+
 create or replace function public.create_couple_for_current_user(
   couple_name text,
   profile_name text,

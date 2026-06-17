@@ -48,18 +48,39 @@ export async function getTodayRitual() {
   const supabase = await createClient();
   const today = getTodayISO();
 
-  const { data: entries } = await supabase
+  const { data: todayEntries } = await supabase
     .from("daily_entries")
     .select("*, profiles(display_name)")
     .eq("couple_id", profile.couple_id)
     .eq("entry_date", today)
     .order("created_at", { ascending: true });
 
+  const { data: latestPreviousEntry } = await supabase
+    .from("daily_entries")
+    .select("entry_date")
+    .eq("couple_id", profile.couple_id)
+    .lt("entry_date", today)
+    .order("entry_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const lastEveningDate = latestPreviousEntry?.entry_date ?? null;
+  const { data: lastEveningEntries } = lastEveningDate
+    ? await supabase
+        .from("daily_entries")
+        .select("*, profiles(display_name)")
+        .eq("couple_id", profile.couple_id)
+        .eq("entry_date", lastEveningDate)
+        .order("created_at", { ascending: true })
+    : { data: [] };
+
   return {
     today,
     profile,
-    entries: entries ?? [],
-    ownEntry: entries?.find((entry) => entry.user_id === profile.id) ?? null,
+    lastEveningDate,
+    lastEveningEntries: lastEveningEntries ?? [],
+    todayEntries: todayEntries ?? [],
+    ownEntry: todayEntries?.find((entry) => entry.user_id === profile.id) ?? null,
   };
 }
 
@@ -67,13 +88,30 @@ export async function getHistoryEntries() {
   const { profile } = await requireProfile();
   const supabase = await createClient();
 
-  const { data } = await supabase
+  const today = getTodayISO();
+  const { data: latestPreviousEntry } = await supabase
+    .from("daily_entries")
+    .select("entry_date")
+    .eq("couple_id", profile.couple_id)
+    .lt("entry_date", today)
+    .order("entry_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let query = supabase
     .from("daily_entries")
     .select("*, profiles(display_name)")
     .eq("couple_id", profile.couple_id)
+    .lt("entry_date", today)
     .order("entry_date", { ascending: false })
     .order("created_at", { ascending: true })
     .limit(80);
+
+  if (latestPreviousEntry?.entry_date) {
+    query = query.neq("entry_date", latestPreviousEntry.entry_date);
+  }
+
+  const { data } = await query;
 
   return { profile, entries: data ?? [] };
 }
