@@ -16,7 +16,7 @@ type TodayPageProps = {
 
 export default async function TodayPage({ searchParams }: TodayPageProps) {
   const params = await searchParams;
-  const { today, profile, lastEveningDate, lastEveningEntries, ownEntry } = await getTodayRitual();
+  const { today, profile, eveningDate, eveningEntries, ownEntry } = await getTodayRitual();
 
   return (
     <AppShell title="Heute" subtitle={formatDateLabel(today)}>
@@ -48,12 +48,12 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-800/50">Gemeinsam</p>
           <h2 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-stone-950">Euer Abendblick</h2>
-          {lastEveningDate ? (
-            <p className="mt-1 text-sm text-stone-600">{formatDateLabel(lastEveningDate)}</p>
+          {eveningDate ? (
+            <p className="mt-1 text-sm text-stone-600">{formatDateLabel(eveningDate)}</p>
           ) : null}
         </div>
         <div className="grid gap-3">
-          {lastEveningEntries.map((entry) => {
+          {eveningEntries.map((entry) => {
             const canFavorite = entry.user_id === profile.id;
 
             return (
@@ -80,9 +80,9 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
               </article>
             );
           })}
-          {lastEveningEntries.length === 0 ? (
+          {eveningEntries.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-amber-200/80 bg-white/35 p-4 text-sm leading-6 text-stone-600">
-              Sobald ein vorheriger Abend gespeichert ist, erscheint er hier als gemeinsamer Abendblick.
+              Sobald einer von euch heute speichert, erscheint der Eintrag hier direkt im gemeinsamen Abendblick.
             </div>
           ) : null}
         </div>

@@ -85,11 +85,14 @@ export async function getTodayRitual() {
         .order("created_at", { ascending: true })
     : { data: [] };
 
+  const eveningDate = todayEntries?.length ? today : lastEveningDate;
+  const eveningEntries = todayEntries?.length ? todayEntries : lastEveningEntries ?? [];
+
   return {
     today,
     profile,
-    lastEveningDate,
-    lastEveningEntries: lastEveningEntries ?? [],
+    eveningDate,
+    eveningEntries,
     todayEntries: todayEntries ?? [],
     ownEntry: todayEntries?.find((entry) => entry.user_id === profile.id) ?? null,
   };
@@ -109,6 +112,13 @@ export async function getHistoryEntries() {
     .limit(1)
     .maybeSingle();
 
+  const { data: todayEntries } = await supabase
+    .from("daily_entries")
+    .select("id")
+    .eq("couple_id", profile.couple_id)
+    .eq("entry_date", today)
+    .limit(1);
+
   let query = supabase
     .from("daily_entries")
     .select("*, profiles(display_name)")
@@ -118,7 +128,7 @@ export async function getHistoryEntries() {
     .order("created_at", { ascending: true })
     .limit(80);
 
-  if (latestPreviousEntry?.entry_date) {
+  if (!todayEntries?.length && latestPreviousEntry?.entry_date) {
     query = query.neq("entry_date", latestPreviousEntry.entry_date);
   }
 
