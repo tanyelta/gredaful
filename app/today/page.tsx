@@ -4,6 +4,7 @@ import { DeleteEntryButton } from "@/components/delete-entry-button";
 import { EntryForm } from "@/components/entry-form";
 import { FavoriteButton } from "@/components/favorite-button";
 import { GlassCard } from "@/components/glass-card";
+import { RITUAL_PARTNERS } from "@/lib/auth-users";
 import { formatDateLabel } from "@/lib/dates";
 import { getTodayRitual } from "@/lib/app-data";
 
@@ -17,6 +18,12 @@ type TodayPageProps = {
 export default async function TodayPage({ searchParams }: TodayPageProps) {
   const params = await searchParams;
   const { today, profile, eveningDate, eveningEntries, ownEntry } = await getTodayRitual();
+  const eveningSlots = RITUAL_PARTNERS.map((partnerName) => ({
+    partnerName,
+    entry:
+      eveningEntries.find((entry) => entry.profiles?.display_name?.toLowerCase() === partnerName.toLowerCase()) ??
+      null,
+  }));
 
   return (
     <AppShell title="Heute" subtitle={formatDateLabel(today)}>
@@ -53,7 +60,19 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
           ) : null}
         </div>
         <div className="grid gap-3">
-          {eveningEntries.map((entry) => {
+          {eveningSlots.map(({ partnerName, entry }) => {
+            if (!entry) {
+              return (
+                <article
+                  key={partnerName}
+                  className="rounded-3xl border border-dashed border-amber-200/80 bg-white/35 p-4 text-sm leading-6 text-stone-600"
+                >
+                  <p className="mb-1 font-semibold text-stone-950">{partnerName}</p>
+                  <p>Noch kein Eintrag für diesen Abend.</p>
+                </article>
+              );
+            }
+
             const canFavorite = entry.user_id === profile.id;
 
             return (
@@ -80,11 +99,6 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
               </article>
             );
           })}
-          {eveningEntries.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-amber-200/80 bg-white/35 p-4 text-sm leading-6 text-stone-600">
-              Sobald einer von euch heute speichert, erscheint der Eintrag hier direkt im gemeinsamen Abendblick.
-            </div>
-          ) : null}
         </div>
       </GlassCard>
     </AppShell>

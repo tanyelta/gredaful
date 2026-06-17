@@ -18,3 +18,5 @@ export function getAuthUser(username: string) {
 export function isAllowedAuthEmail(email?: string) {
   return Object.values(AUTH_USERS).some((user) => user.email === email);
 }
+
+export const RITUAL_PARTNERS = Object.values(AUTH_USERS).map((user) => user.displayName);
